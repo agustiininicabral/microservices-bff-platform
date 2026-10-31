@@ -22,12 +22,12 @@ Clients -> API Gateway (YARP) -> Identity.Api / Catalog.Api / Orders.Api / Web.B
 
 ## Configuration
 
-All five processes must use the same signing key. Generate a random secret of at least 32 bytes and keep it out of source control. PowerShell example:
+All five processes must use the same signing key. Generate a random secret of at least 32 bytes and keep it out of source control. Generate the key once in PowerShell:
 
     $key = [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
-    $env:Jwt__SigningKey = $key
+    Write-Output $key
 
-Set Jwt__SigningKey in each terminal. Never commit signing keys. Use HTTPS and a managed secret store in deployed environments.
+Copy that exact value into Jwt__SigningKey in each of the five service terminals. Do not generate a different key per process. Never commit signing keys. Use HTTPS and a managed secret store in deployed environments.
 
 ## Run locally
 
@@ -71,7 +71,7 @@ Authenticated examples:
 2. Expand automated unit, API integration, and consumer/provider contract tests. Current coverage includes identity registration/login integration, SQLite persistence and ownership tests, and a multi-process end-to-end smoke test through the Gateway.
 3. Add retry policies with jitter where safe, circuit breakers, bulkheads, and more granular downstream failure handling. BFF and Gateway calls already have bounded timeouts.
 4. Add structured logs, distributed trace correlation, metrics, and dashboards. Gateway and BFF readiness already probe their downstream dependencies.
-5. Add OpenAPI documentation, dependency/security scanning, and environment-specific deployment workflows. CI currently restores, builds, runs automated tests, and executes the end-to-end smoke test.
+5. Add OpenAPI documentation, dependency/security scanning, and environment-specific deployment automation. The release workflow validates the platform and publishes five service artifacts; it does not deploy to a cloud environment.
 6. Add production hardening: refresh-token lifecycle, account lockout, key rotation, HTTPS enforcement, secret management, and network isolation.
 
 The current implementation is a learning/portfolio foundation, not a production-ready deployment.
