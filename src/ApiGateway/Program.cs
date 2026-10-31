@@ -10,10 +10,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)), ValidateLifetime = true, ClockSkew = TimeSpan.FromSeconds(30)
 });
 builder.Services.AddAuthorization();
-builder.Services.AddHttpClient("identity", client => client.BaseAddress = new Uri(builder.Configuration["Services:Identity"] ?? "http://localhost:5100"));
-builder.Services.AddHttpClient("catalog", client => client.BaseAddress = new Uri(builder.Configuration["Services:Catalog"] ?? "http://localhost:5101"));
-builder.Services.AddHttpClient("orders", client => client.BaseAddress = new Uri(builder.Configuration["Services:Orders"] ?? "http://localhost:5102"));
-builder.Services.AddHttpClient("web-bff", client => client.BaseAddress = new Uri(builder.Configuration["Services:WebBff"] ?? "http://localhost:5103"));
+builder.Services.AddHttpClient("identity", client => { client.BaseAddress = new Uri(builder.Configuration["Services:Identity"] ?? "http://localhost:5100"); client.Timeout = TimeSpan.FromSeconds(3); });
+builder.Services.AddHttpClient("catalog", client => { client.BaseAddress = new Uri(builder.Configuration["Services:Catalog"] ?? "http://localhost:5101"); client.Timeout = TimeSpan.FromSeconds(3); });
+builder.Services.AddHttpClient("orders", client => { client.BaseAddress = new Uri(builder.Configuration["Services:Orders"] ?? "http://localhost:5102"); client.Timeout = TimeSpan.FromSeconds(3); });
+builder.Services.AddHttpClient("web-bff", client => { client.BaseAddress = new Uri(builder.Configuration["Services:WebBff"] ?? "http://localhost:5103"); client.Timeout = TimeSpan.FromSeconds(3); });
 builder.Services.AddReverseProxy().LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 var app = builder.Build(); app.UseAuthentication(); app.UseAuthorization();
 app.MapGet("/health/live", () => Results.Ok(new { status = "live", service = "api-gateway" }));
