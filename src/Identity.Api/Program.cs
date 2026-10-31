@@ -38,7 +38,7 @@ app.MapPost("/api/auth/login", async (LoginRequest request, IdentityStore store,
     return Results.Ok(issuer.Create(email));
 }).RequireRateLimiting("auth");
 app.Run();
-public partial class Program;
+public partial class Program { }
 public sealed record RegisterRequest(string? Email, string? Password);
 public sealed record LoginRequest(string? Email, string? Password);
 public sealed class TokenIssuer(string signingKey, string issuer)
