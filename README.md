@@ -2,7 +2,7 @@
 
 A .NET 8 reference platform demonstrating independently hosted services, JWT authentication, a YARP API Gateway, and a Web Backend-for-Frontend (BFF) that aggregates downstream APIs.
 
-> Status: initial runnable architecture. Catalog and Orders use independent SQLite databases. Broader automated API integration and contract coverage, advanced resilience policies, observability, and deployment automation are still required before production use.
+> Status: portfolio-ready vertical slice with independently persisted services, authenticated APIs, gateway routing, BFF aggregation, automated tests, and an end-to-end smoke test. It is not a production deployment; remaining hardening is listed below.
 
 ## Architecture
 
@@ -58,7 +58,7 @@ Authenticated examples:
 ## Security implemented
 
 - ASP.NET Core PasswordHasher; plaintext passwords are never stored.
-- Registration and login fixed-window rate limiting.
+- Registration and login fixed-window rate limiting partitioned by client IP.
 - JWT issuer, audience, signature, and lifetime validation at the Gateway and protected services.
 - Orders are scoped to the authenticated user.
 - Authentication throttling is partitioned by client IP.
@@ -67,11 +67,11 @@ Authenticated examples:
 
 ## Known limitations and next milestones
 
-1. Replace in-memory Catalog and Orders storage with independent durable databases and migrations.
-2. Expand automated unit, API integration, and consumer/provider contract tests. Initial SQLite store tests cover identity persistence, catalog filtering, and customer-scoped orders.
-3. Add downstream timeouts, retries with jitter where safe, circuit breakers, and explicit cancellation handling.
-4. Add structured logs, trace correlation, metrics, and dependency-aware readiness checks.
-5. Add OpenAPI documentation, CI test gates, dependency/security scanning, and deployment workflows.
+1. Add versioned schema migrations, backup/restore procedures, and transactional workflows where required.
+2. Expand automated unit, API integration, and consumer/provider contract tests. Current coverage includes identity registration/login integration, SQLite persistence and ownership tests, and a multi-process end-to-end smoke test through the Gateway.
+3. Add retry policies with jitter where safe, circuit breakers, bulkheads, and more granular downstream failure handling. BFF and Gateway calls already have bounded timeouts.
+4. Add structured logs, distributed trace correlation, metrics, and dashboards. Gateway and BFF readiness already probe their downstream dependencies.
+5. Add OpenAPI documentation, dependency/security scanning, and environment-specific deployment workflows. CI currently restores, builds, runs automated tests, and executes the end-to-end smoke test.
 6. Add production hardening: refresh-token lifecycle, account lockout, key rotation, HTTPS enforcement, secret management, and network isolation.
 
 The current implementation is a learning/portfolio foundation, not a production-ready deployment.
