@@ -18,7 +18,8 @@ Clients -> API Gateway (YARP) -> Identity.Api / Catalog.Api / Orders.Api / Web.B
 ## Requirements
 
 - .NET SDK 8.0.408 or a compatible .NET 8 patch.
-- No container runtime is required for this local development setup.\n- The smoke test requires Bash, curl, jq, OpenSSL, and free ports 5080–5103.
+- No container runtime is required for this local development setup.
+- The smoke test requires Bash, curl, jq, OpenSSL, and free ports 5080–5103.
 
 ## Configuration
 
@@ -61,7 +62,6 @@ Authenticated examples:
 - Registration and login fixed-window rate limiting partitioned by client IP.
 - JWT issuer, audience, signature, and lifetime validation at the Gateway and protected services.
 - Orders are scoped to the authenticated user.
-- Authentication throttling is partitioned by client IP.
 - BFF and Gateway readiness endpoints verify their downstream dependencies with bounded timeouts.
 - Public Identity endpoints are limited to registration and login.
 
