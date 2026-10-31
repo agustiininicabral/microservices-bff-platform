@@ -25,3 +25,36 @@ jobs:
         run: dotnet test MicroservicesBffPlatform.sln --configuration Release --no-build --logger trx
       - name: End-to-end smoke test
         run: bash scripts/smoke-test.sh
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: Identity.Api
+            artifact: identity-api
+          - project: Catalog.Api
+            artifact: catalog-api
+          - project: Orders.Api
+            artifact: orders-api
+          - project: Web.Bff
+            artifact: web-bff
+          - project: ApiGateway
+            artifact: api-gateway
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Restore
+        run: dotnet restore MicroservicesBffPlatform.sln
+      - name: Publish ${{ matrix.project }}
+        run: dotnet publish "src/${{ matrix.project }}/${{ matrix.project }}.csproj" --configuration Release --no-restore --output "artifacts/${{ matrix.artifact }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}-${{ github.sha }}
+          path: artifacts/${{ matrix.artifact }}
+          if-no-files-found: error
+          retention-days: 7
