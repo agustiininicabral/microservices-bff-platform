@@ -44,6 +44,17 @@ public sealed class IdentityApiTests
             Assert.False(string.IsNullOrWhiteSpace(payload?.RootElement.GetProperty("accessToken").GetString()));
             Assert.Equal("Bearer", payload?.RootElement.GetProperty("tokenType").GetString());
             Assert.Equal(1800, payload?.RootElement.GetProperty("expiresIn").GetInt32());
+
+            for (var attempt = 0; attempt < 5; attempt++)
+            {
+                var rejectedLogin = await client.PostAsJsonAsync("/api/auth/login",
+                    new { email = "integration@example.com", password = "WrongPassword123" });
+                Assert.Equal(HttpStatusCode.Unauthorized, rejectedLogin.StatusCode);
+            }
+
+            var throttledLogin = await client.PostAsJsonAsync("/api/auth/login",
+                new { email = "integration@example.com", password = "WrongPassword123" });
+            Assert.Equal(HttpStatusCode.TooManyRequests, throttledLogin.StatusCode);
         }
         finally
         {
