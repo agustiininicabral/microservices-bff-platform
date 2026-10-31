@@ -15,7 +15,18 @@ builder.Services.AddHttpClient("catalog", c => { c.BaseAddress = new Uri(builder
 builder.Services.AddHttpClient("orders", c => { c.BaseAddress = new Uri(builder.Configuration["Services:Orders"] ?? "http://localhost:5102"); c.Timeout = TimeSpan.FromSeconds(5); });
 var app = builder.Build(); app.UseAuthentication(); app.UseAuthorization();
 app.MapGet("/health/live", () => Results.Ok(new { status = "live", service = "web-bff" }));
-app.MapGet("/health/ready", () => Results.Ok(new { status = "ready", service = "web-bff" }));
+app.MapGet("/health/ready", async (IHttpClientFactory clients, CancellationToken ct) => {
+    try {
+        var checks = await Task.WhenAll(
+            clients.CreateClient("catalog").GetAsync("/health/ready", ct),
+            clients.CreateClient("orders").GetAsync("/health/ready", ct));
+        return checks.All(response => response.IsSuccessStatusCode)
+            ? Results.Ok(new { status = "ready", service = "web-bff" })
+            : Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    }
+    catch (HttpRequestException) { return Results.StatusCode(StatusCodes.Status503ServiceUnavailable); }
+    catch (OperationCanceledException) when (!ct.IsCancellationRequested) { return Results.StatusCode(StatusCodes.Status503ServiceUnavailable); }
+});
 app.MapGet("/api/web/dashboard", async (HttpContext context, IHttpClientFactory clients, CancellationToken ct) => {
     var token = context.Request.Headers.Authorization.ToString();
     using var catalogRequest = new HttpRequestMessage(HttpMethod.Get, "/api/catalog/products");
