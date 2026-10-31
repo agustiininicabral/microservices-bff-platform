@@ -61,6 +61,8 @@ Authenticated examples:
 - Registration and login fixed-window rate limiting.
 - JWT issuer, audience, signature, and lifetime validation at the Gateway and protected services.
 - Orders are scoped to the authenticated user.
+- Authentication throttling is partitioned by client IP.
+- BFF and Gateway readiness endpoints verify their downstream dependencies with bounded timeouts.
 - Public Identity endpoints are limited to registration and login.
 
 ## Known limitations and next milestones
@@ -78,6 +80,7 @@ The current implementation is a learning/portfolio foundation, not a production-
 
     dotnet restore MicroservicesBffPlatform.sln
     dotnet build MicroservicesBffPlatform.sln --configuration Release --no-restore
+    dotnet test MicroservicesBffPlatform.sln --configuration Release --no-build
 
 ## References
 
