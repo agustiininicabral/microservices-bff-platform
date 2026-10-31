@@ -18,7 +18,7 @@ Clients -> API Gateway (YARP) -> Identity.Api / Catalog.Api / Orders.Api / Web.B
 ## Requirements
 
 - .NET SDK 8.0.408 or a compatible .NET 8 patch.
-- No container runtime is required for this local development setup.
+- No container runtime is required for this local development setup.\n- The smoke test requires Bash, curl, jq, OpenSSL, and free ports 5080–5103.
 
 ## Configuration
 
