@@ -2,15 +2,15 @@
 
 A .NET 8 reference platform demonstrating independently hosted services, JWT authentication, a YARP API Gateway, and a Web Backend-for-Frontend (BFF) that aggregates downstream APIs.
 
-> Status: initial runnable architecture. Catalog and Orders currently use in-memory sample data. Durable business-service persistence, broader automated integration and contract coverage, resilience policies, observability, and deployment automation are still required before production use.
+> Status: initial runnable architecture. Catalog and Orders use independent SQLite databases. Broader automated API integration and contract coverage, advanced resilience policies, observability, and deployment automation are still required before production use.
 
 ## Architecture
 
 Clients -> API Gateway (YARP) -> Identity.Api / Catalog.Api / Orders.Api / Web.Bff
 
 - Identity.Api registers users, stores password hashes in a dedicated SQLite database, and issues short-lived JWT access tokens.
-- Catalog.Api exposes authenticated product queries.
-- Orders.Api exposes authenticated order operations scoped to the token subject.
+- Catalog.Api exposes authenticated product queries backed by its own SQLite database.
+- Orders.Api exposes authenticated, durable order operations scoped to the token subject using its own SQLite database.
 - Web.Bff aggregates Catalog and Orders concurrently and forwards the caller's bearer token.
 - ApiGateway is the single external entry point and routes requests with YARP.
 - Services own their API contracts. No business-domain entities or database schema are shared.
@@ -41,7 +41,7 @@ Start each process in a separate terminal from the repository root:
 | Web BFF | dotnet run --project src/Web.Bff --urls http://localhost:5103 | 5103 |
 | Gateway | dotnet run --project src/ApiGateway --urls http://localhost:5080 | 5080 |
 
-Identity creates identity.db on first startup. Do not expose service ports publicly; only the Gateway should be reachable by clients.
+Identity creates identity.db, Catalog creates catalog.db, and Orders creates orders.db on first startup. Each service owns its own database file. Do not expose service ports publicly; only the Gateway should be reachable by clients.
 
 ## API walkthrough
 
@@ -66,7 +66,7 @@ Authenticated examples:
 ## Known limitations and next milestones
 
 1. Replace in-memory Catalog and Orders storage with independent durable databases and migrations.
-2. Add automated unit, API integration, and consumer/provider contract tests.
+2. Expand automated unit, API integration, and consumer/provider contract tests. Initial SQLite store tests cover identity persistence, catalog filtering, and customer-scoped orders.
 3. Add downstream timeouts, retries with jitter where safe, circuit breakers, and explicit cancellation handling.
 4. Add structured logs, trace correlation, metrics, and dependency-aware readiness checks.
 5. Add OpenAPI documentation, CI test gates, dependency/security scanning, and deployment workflows.
