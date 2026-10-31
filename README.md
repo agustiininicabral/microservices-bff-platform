@@ -59,7 +59,7 @@ Authenticated examples:
 ## Security implemented
 
 - ASP.NET Core PasswordHasher; plaintext passwords are never stored.
-- Registration and login fixed-window rate limiting partitioned by client IP.
+- Registration and login fixed-window rate limiting: 10 requests per minute per remote IP observed by Identity. Rejections return HTTP 429; behind a reverse proxy, configure trusted forwarded headers as described in [Security Notes](docs/security.md).
 - JWT issuer, audience, signature, and lifetime validation at the Gateway and protected services.
 - Orders are scoped to the authenticated user.
 - BFF and Gateway readiness endpoints verify their downstream dependencies with bounded timeouts.
@@ -71,10 +71,10 @@ Authenticated examples:
 2. Expand automated unit, API integration, and consumer/provider contract tests. Current coverage includes identity registration/login integration, SQLite persistence and ownership tests, and a multi-process end-to-end smoke test through the Gateway.
 3. Add retry policies with jitter where safe, circuit breakers, bulkheads, and more granular downstream failure handling. BFF and Gateway calls already have bounded timeouts.
 4. Add structured logs, distributed trace correlation, metrics, and dashboards. Gateway and BFF readiness already probe their downstream dependencies.
-5. Add OpenAPI documentation, dependency/security scanning, and environment-specific deployment automation. The release workflow validates the platform and publishes five service artifacts; it does not deploy to a cloud environment.
+5. Add richer contract tests, dependency vulnerability enforcement, and environment-specific deployment automation. The CI workflow builds, tests, smoke-tests, and publishes five service artifacts. The tag-based Release workflow packages the same services but does not deploy to a cloud environment.
 6. Add production hardening: refresh-token lifecycle, account lockout, key rotation, HTTPS enforcement, secret management, and network isolation.
 
-The current implementation is a learning/portfolio foundation, not a production-ready deployment.
+The current implementation is a learning/portfolio foundation, not a production-ready deployment. See [Security Notes](docs/security.md) for the controls already present and the gaps that remain.
 
 ## Build
 
