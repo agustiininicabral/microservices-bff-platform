@@ -14,7 +14,7 @@ cleanup() {
   for pid in "${pids[@]:-}"; do
     wait "$pid" 2>/dev/null || true
   done
-  rm -f identity.db catalog.db orders.db identity.db-shm identity.db-wal catalog.db-shm catalog.db-wal orders.db-shm orders.db-wal
+  rm -f src/Identity.Api/identity.db* src/Catalog.Api/catalog.db* src/Orders.Api/orders.db*
   rm -rf "$log_dir"
 }
 trap cleanup EXIT
@@ -23,7 +23,7 @@ start_service() {
   local name="$1"
   local project="$2"
   local port="$3"
-  dotnet run --project "$project" --configuration Release --no-build --urls "http://localhost:$port" >"$log_dir/$name.log" 2>&1 &
+  (cd "src/$project" && dotnet "bin/Release/net8.0/$project.dll" --urls "http://localhost:$port") >"$log_dir/$name.log" 2>&1 &
   pids+=("$!")
 }
 
@@ -52,11 +52,11 @@ assert_status() {
   fi
 }
 
-start_service identity src/Identity.Api/Identity.Api.csproj 5100
-start_service catalog src/Catalog.Api/Catalog.Api.csproj 5101
-start_service orders src/Orders.Api/Orders.Api.csproj 5102
-start_service web-bff src/Web.Bff/Web.Bff.csproj 5103
-start_service gateway src/ApiGateway/ApiGateway.csproj 5080
+start_service identity Identity.Api 5100
+start_service catalog Catalog.Api 5101
+start_service orders Orders.Api 5102
+start_service web-bff Web.Bff 5103
+start_service gateway ApiGateway 5080
 
 wait_for_gateway
 
