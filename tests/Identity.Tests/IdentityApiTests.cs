@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Xunit;
 
 namespace Identity.Tests;
@@ -39,10 +40,10 @@ public sealed class IdentityApiTests
             var login = await client.PostAsJsonAsync("/api/auth/login",
                 new { email = "integration@example.com", password = "StrongPassword123" });
             Assert.Equal(HttpStatusCode.OK, login.StatusCode);
-            var payload = await login.Content.ReadFromJsonAsync<TokenResponse>();
-            Assert.False(string.IsNullOrWhiteSpace(payload?.AccessToken));
-            Assert.Equal("Bearer", payload?.TokenType);
-            Assert.Equal(1800, payload?.ExpiresIn);
+            using var payload = await login.Content.ReadFromJsonAsync<JsonDocument>();
+            Assert.False(string.IsNullOrWhiteSpace(payload?.RootElement.GetProperty("accessToken").GetString()));
+            Assert.Equal("Bearer", payload?.RootElement.GetProperty("tokenType").GetString());
+            Assert.Equal(1800, payload?.RootElement.GetProperty("expiresIn").GetInt32());
         }
         finally
         {
@@ -52,5 +53,4 @@ public sealed class IdentityApiTests
         }
     }
 
-    private sealed record TokenResponse(string AccessToken, string TokenType, int ExpiresIn);
 }
