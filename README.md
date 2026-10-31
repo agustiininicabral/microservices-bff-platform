@@ -81,6 +81,7 @@ The current implementation is a learning/portfolio foundation, not a production-
     dotnet restore MicroservicesBffPlatform.sln
     dotnet build MicroservicesBffPlatform.sln --configuration Release --no-restore
     dotnet test MicroservicesBffPlatform.sln --configuration Release --no-build
+    bash scripts/smoke-test.sh
 
 ## References
 
