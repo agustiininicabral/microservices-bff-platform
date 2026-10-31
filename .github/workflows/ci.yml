@@ -23,3 +23,5 @@ jobs:
         run: dotnet build MicroservicesBffPlatform.sln --configuration Release --no-restore
       - name: Test
         run: dotnet test MicroservicesBffPlatform.sln --configuration Release --no-build --logger trx
+      - name: End-to-end smoke test
+        run: bash scripts/smoke-test.sh
