@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Data.Sqlite;
@@ -13,7 +14,16 @@ if (Encoding.UTF8.GetByteCount(signingKey) < 32) throw new InvalidOperationExcep
 builder.Services.AddSingleton(new PasswordHasher<string>());
 builder.Services.AddSingleton(new TokenIssuer(signingKey, builder.Configuration["Jwt:Issuer"] ?? "microservices-bff-platform"));
 builder.Services.AddSingleton(new IdentityStore(connectionString));
-builder.Services.AddRateLimiter(o => o.AddFixedWindowLimiter("auth", x => { x.PermitLimit = 10; x.Window = TimeSpan.FromMinutes(1); x.QueueLimit = 0; }));
+builder.Services.AddRateLimiter(options => options.AddPolicy("auth", context =>
+    RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0,
+            AutoReplenishment = true
+        })));
 var app = builder.Build();
 app.UseRateLimiter();
 await app.Services.GetRequiredService<IdentityStore>().InitializeAsync();
