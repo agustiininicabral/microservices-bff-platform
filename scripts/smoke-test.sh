@@ -23,7 +23,7 @@ start_service() {
   local name="$1"
   local project="$2"
   local port="$3"
-  (cd "src/$project" && dotnet "bin/Release/net8.0/$project.dll" --urls "http://localhost:$port") >"$log_dir/$name.log" 2>&1 &
+  (cd "src/$project" && exec dotnet "bin/Release/net8.0/$project.dll" --urls "http://localhost:$port") >"$log_dir/$name.log" 2>&1 &
   pids+=("$!")
 }
 
