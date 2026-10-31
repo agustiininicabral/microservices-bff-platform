@@ -14,16 +14,20 @@ if (Encoding.UTF8.GetByteCount(signingKey) < 32) throw new InvalidOperationExcep
 builder.Services.AddSingleton(new PasswordHasher<string>());
 builder.Services.AddSingleton(new TokenIssuer(signingKey, builder.Configuration["Jwt:Issuer"] ?? "microservices-bff-platform"));
 builder.Services.AddSingleton(new IdentityStore(connectionString));
-builder.Services.AddRateLimiter(options => options.AddPolicy("auth", context =>
-    RateLimitPartition.GetFixedWindowLimiter(
-        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-        _ => new FixedWindowRateLimiterOptions
-        {
-            PermitLimit = 10,
-            Window = TimeSpan.FromMinutes(1),
-            QueueLimit = 0,
-            AutoReplenishment = true
-        })));
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("auth", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
+});
 var app = builder.Build();
 app.UseRateLimiter();
 await app.Services.GetRequiredService<IdentityStore>().InitializeAsync();
@@ -37,7 +41,7 @@ app.MapPost("/api/auth/register", async (RegisterRequest request, IdentityStore 
         return Results.ValidationProblem(new Dictionary<string, string[]> { ["password"] = ["Password must contain at least 12 characters, including letters and numbers."] });
     var email = request.Email.Trim().ToLowerInvariant();
     var created = await store.CreateUserAsync(email, hasher.HashPassword(email, request.Password));
-    return created ? Results.Created($"/api/users/{Uri.EscapeDataString(email)}", new { email }) : Results.Conflict(new { error = "An account with this email already exists." });
+    return created ? Results.Json(new { email }, statusCode: StatusCodes.Status201Created) : Results.Conflict(new { error = "An account with this email already exists." });
 }).RequireRateLimiting("auth");
 app.MapPost("/api/auth/login", async (LoginRequest request, IdentityStore store, PasswordHasher<string> hasher, TokenIssuer issuer) =>
 {
